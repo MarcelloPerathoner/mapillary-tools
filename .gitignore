@@ -1,0 +1,6 @@
+*~
+*.pyc
+pylintgraph.dot
+
+/dist/
+/*.egg-info
