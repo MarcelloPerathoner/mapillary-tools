@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 
 '''Extract EXIF info from discrete image files.
 
@@ -17,21 +17,15 @@ Process images from a list of images (one complete filepath per line):
 
 '''
 
-import argparse
-import sys
-import uuid
+import logging
 
-from mapillary_tools import get_image_geotags, read_sidecar_file, write_sidecar_file
+import mapillary_tools as mt
 
 
 def build_parser ():
     ''' Build the commandline parser. '''
 
-    parser = argparse.ArgumentParser (
-        description = __doc__,
-        formatter_class = argparse.RawDescriptionHelpFormatter,  # don't wrap my description
-        fromfile_prefix_chars = '@'
-    )
+    parser = mt.build_parser (__doc__)
 
     parser.add_argument (
         'images', metavar='FILENAME', type=str, nargs='+',
@@ -39,24 +33,43 @@ def build_parser ():
     )
 
     parser.add_argument (
-        '-v', '--verbose', dest='verbose', action='count',
-        help='increase output verbosity', default=0
+        '--clean', action='store_true',
+        help='remove sidecar files for selected images'
     )
     return parser
 
 
-if __name__ == '__main__':
+def main ():
+    ''' The main function. '''
+
     args = build_parser ().parse_args ()
+    mt.init_logging (args.verbose)
+
+    if args.clean:
+        for image in args.images:
+            mt.delete_sidecar_file (image)
+            logging.info (image)
+        return
 
     for image in args.images:
-        geotags = read_sidecar_file (image)
-        geotags.setdefault ('MAPPhotoUUID', str (uuid.uuid4 ()))
-        geotags.update (get_image_geotags (image))
+        logging.info (image)
 
-        if args.verbose:
-            print (image, geotags)
+        geotags = mt.read_sidecar_file (image)
+        mt.set_uuid (geotags)
 
-        write_sidecar_file (image, geotags)
+        try:
+            geotags.update (mt.get_image_geotags (image))
+            mt.write_sidecar_file (image, geotags)
 
-        if 'MAPLatitude' not in geotags or 'MAPCaptureTime' not in geotags:
-            sys.stderr.write ('No GPS data found in {filename}\n'.format (filename = image))
+        except mt.MapillaryError as e:
+            logging.exception (e)
+
+        if 'MAPCaptureTime' not in geotags:
+            logging.warning ('%s has no timestamp', image)
+
+        if 'MAPLatitude' not in geotags:
+            logging.warning ('%s has no GPS data', image)
+
+
+if __name__ == '__main__':
+    main ()

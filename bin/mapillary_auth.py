@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 
 '''Get Mapillary authentication tokens and store them.
 
@@ -10,24 +10,17 @@ only once.
 
 '''
 
-import argparse
 import getpass
+import logging
 
-from mapillary_tools import get_auth_tokens, write_config_file
+import mapillary_tools as mt
 
 
 def build_parser ():
     ''' Build the commandline parser. '''
 
-    parser = argparse.ArgumentParser (
-        description = __doc__,
-        formatter_class = argparse.RawDescriptionHelpFormatter  # don't wrap my description
-    )
+    parser = mt.build_parser (__doc__)
 
-    parser.add_argument (
-        '-v', '--verbose', dest='verbose', action='count',
-        help='increase output verbosity', default=0
-    )
     parser.add_argument (
         '-u', '--user_name', required = True,
         help='your username on Mapillary'
@@ -36,12 +29,18 @@ def build_parser ():
         '-e', '--user_email', required = True,
         help='your email on Mapillary'
     )
+
     return parser
 
 
 if __name__ == '__main__':
     args = build_parser ().parse_args ()
+    mt.init_logging (args.verbose)
 
     password = getpass.getpass ('Please enter your Mapillary user password : ')
 
-    write_config_file (get_auth_tokens (args.user_name, args.user_email, password))
+    try:
+        mt.write_config_file (mt.get_auth_tokens (args.user_name, args.user_email, password))
+
+    except mt.MapillaryError as e:
+        logging.exception (e)

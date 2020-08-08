@@ -1,20 +1,22 @@
-==============================
- Mapillary Tools for Python 3
-==============================
+======================================
+ Mapillary Commandline Image Uploader
+======================================
 
 
-Tool to upload discrete images to Mapillary.  Does not support videos.
+Commandline tools to upload discrete images to Mapillary.
+Does not support videos.
 
 
 Rewrite
 =======
 
-This is a complete rewrite of a portion of the official Mapillary tools found at:
+This is a rewrite of a portion of the official Mapillary tools found at:
 https://github.com/mapillary/mapillary_tools
 
 The official Mapillary tools are broken because Python 2 is dead.  Major
-distributions have already removed Python 2 from their standard installation.  A
-Python 3 port has been requested a long time ago but nothing happened.
+distributions have already removed Python 2 from their standard installation.
+An official Python 3 port has been requested in May 2018 but has not
+materialized so far.
 
 A quick look at the official code shows that it is not worth porting anyway.
 That code was obviously written by lots of different people with varying
@@ -62,6 +64,15 @@ Usage
    The script remembers which images were successfully uploaded.  If you run the
    upload script on the same images again, the ones already uploaded will not be
    uploaded again.
+
+4. Cleanup:
+
+   .. code-block:: shell
+
+      mapillary_process.py --clean ~/Pictures/Mapillary/*.jpg
+
+   Delete all sidecar files.  Caution: This will erase all memory about which
+   files where already uploaded.
 
 Run the scripts with '-h' to see more options.
 
